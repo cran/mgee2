@@ -2,21 +2,26 @@
 #'
 #' Corrected GEE2 for ordinal data. This method yields unbiased estimators, but the
 #' misclassification parameters are required to known.
+#' 
+#' \emph{mgee2k} implements the misclassification adjustment method outlined in Chen et al.(2014)
+#'  where the misclassification parameters are known. In this case, validation data are not required,
+#'  and only the observed data of the outcome and covariates are needed for the implementation.
+#'  
 #' @export
 #' @useDynLib mgee2
 #' @inheritParams ordGEE2
-#' @param obsform a formula object which specifies the relationship between 
+#' @param formula a formula object which specifies the relationship between 
 #'   the response and covariates for the observed data.
-#' @param obsdat a dataframe or matrix object for the observed data set.
+#' @param data a dataframe or matrix object for the observed data set.
 #' @param gamMat a matrix object which records the misclassification parameter gamma for response Y.
 #' @param varphiMat a matrix object which records the misclassification parameter phi for covariate X.
-#' @param W.nam a character object which names the error-prone covariate W.
+#' @param misvariable a character object which names the error-prone covariate W.
 #' @return  A list with component
-#'     \item{beta}{Coefficients in the order as those specified in the formula for the response and covariates.}
-#'     \item{alpha}{Coefficients for paired responses global odds ratios. The number of 
+#'     \item{beta}{the coefficients in the order as those specified in the formula for the response and covariates.}
+#'     \item{alpha}{the oefficients for paired responses global odds ratios. The number of 
 #'     alpha coefficients corresponds to the paired responses odds ratio structure selected
-#'      in OR.str. When OR.str="exchangeable", only one baseline alpha 
-#'      is fitted. When OR.str="log-linear", baseline, first order, 
+#'      in corstr. When corstr="exchangeable", only one baseline alpha 
+#'      is fitted. When corstr="log-linear", baseline, first order, 
 #'      second order (interaction) terms are fitted.}
 #'     \item{variance}{variance-covariance matrix of the estimator of all parameters.}
 #'     \item{convergence}{a logical variable; TRUE if the model converges.}
@@ -34,45 +39,47 @@
 #'   varphiMat <- gamMat <- log( cbind(0.04/0.95, 0.01/0.95,
 #'                                     0.95/0.03, 0.02/0.03,
 #'                                     0.04/0.01, 0.95/0.01) )
-#'   mgee2k.fit = mgee2k(obsform = S~W+treatment+visit, id = "ID", obsdat = obs1,
-#'                     OR.str = "exchangeable", W.nam = "W", gamMat = gamMat, 
+#'   mgee2k.fit = mgee2k(formula = S~W+treatment+visit, id = "ID", data = obs1,
+#'                     corstr = "exchangeable", misvariable = "W", gamMat = gamMat, 
 #'                     varphiMat = varphiMat)
 #'   }
+#' @references
+#' Z. Chen, G. Y. Yi, and C. Wu.  Marginal analysis of longitudinal ordinal data with misclassification inboth response and covariates. \emph{Biometrical Journal}, 56(1):69-85, Oct. 2014
 
-mgee2k <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam,
+mgee2k <- function(formula, id, data, corstr="exchangeable", misvariable,
                   gamMat, varphiMat, maxit=50, tol=1e-3)  {
 
-  ID <- obsdat[, as.character(id)]
-  S.nam <- as.character(obsform)[2]
-  #fac.terms <- as.character(obsform)[3]
-  #W.nam <- strsplit(fac.terms, split="\\+")[[1]][1]
+  ID <- data[, as.character(id)]
+  S.nam <- as.character(formula)[2]
+  #fac.terms <- as.character(formula)[3]
+  #misvariable <- strsplit(fac.terms, split="\\+")[[1]][1]
 
-  # ID <- obsdat[, as.character(id)]
-  # S.nam <- strsplit(obsform, "~")[[1]][1]
-  # fac.terms <- strsplit(obsform, "~")[[1]][2]
-  # W.nam <- strsplit(fac.terms, split="\\+")[[1]][1]
+  # ID <- data[, as.character(id)]
+  # S.nam <- strsplit(formula, "~")[[1]][1]
+  # fac.terms <- strsplit(formula, "~")[[1]][2]
+  # misvariable <- strsplit(fac.terms, split="\\+")[[1]][1]
 
   N <- length(ID)
   n <- length(unique(ID))
   clsize.vec <- as.vector(table(ID))
   m <- clsize.vec[1]
-  K <- length(unique(obsdat[,S.nam])) - 1
-  K_x <- length(unique(obsdat[,W.nam])) - 1
+  K <- length(unique(data[,S.nam])) - 1
+  K_x <- length(unique(data[,misvariable])) - 1
   f <- kronecker(ID, rep(1,K))
 
-  DM <- getDM(formula=obsform, data=obsdat)
+  DM <- getDM(formula=formula, data=data)
   DM <- cbind(matrix(rep(diag(K), sum(clsize.vec)),ncol=K, byrow=T),
               DM[kronecker(1:sum(clsize.vec),rep(1,K)),-1])
   p_b <- ncol(DM)
 
-  Resp <- as.factor(getResp(formula=obsform, data=obsdat))
+  Resp <- as.factor(getResp(formula=formula, data=data))
   Resp <- as.numeric(levels(Resp))[Resp]
   S.Mat <- matrix(0, nrow=N, ncol=K)
   for (k in 1:K) {
     S.Mat[, k] <- Resp==k
   }
   S <- as.vector(t(S.Mat))
-  W.c <- as.factor(obsdat[,W.nam])
+  W.c <- as.factor(data[,misvariable])
   W.c <- as.numeric(levels(W.c))[W.c]
   W.Mat <- matrix(0, nrow=N, ncol=K_x)
   for (k in 1:K_x) {
@@ -95,8 +102,8 @@ mgee2k <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam,
   X.ast.ext.Mat.spl <- lapply(split(data.frame(t(X.ast.ext.Mat)),
                                     f=ID), FUN="as.matrix")
 
-  naigee2.fit <- ordGEE2(formula=obsform, id=id,
-                         OR.str=OR.str, data=obsdat)
+  naigee2.fit <- ordGEE2(formula=formula, id=id,
+                         corstr=corstr, data=data)
   beta_est.init <- naigee2.fit$beta
   alpha_est.init <- naigee2.fit$alpha
   p_a <- length(alpha_est.init)
@@ -120,12 +127,12 @@ mgee2k <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam,
       k2.indx <- c(k2.indx, kronecker(rep(1,K), 1:K))
     }
   }
-  if (OR.str=="exchangeable") {
+  if (corstr=="exchangeable") {
     #alpha_est.init <- 0.5
     #p_a <- length(alpha_est.init)
     assocDM <- matrix(rep(1, length(Ztilde)), ncol=p_a)
   } else {
-    if (OR.str=="log-linear") {
+    if (corstr=="log-linear") {
       #alpha_est.init <- rep(0.35, 1+(K-1)+K*(K-1)/2)
       #p_a <- length(alpha_est.init)
       assocDM_i <- cbind(rep(1, length(j1.indx)),
@@ -244,10 +251,10 @@ mgee2k <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam,
   beta_nam <- c(unlist(lapply("Y>=", 1:K, FUN=paste, sep="")),
                 dimnames(DM)[[2]][-(1:K)])
   alpha_nam <- NULL
-  if (OR.str=="exchangeable") {
+  if (corstr=="exchangeable") {
     alpha_nam <- "Delta"
   } else {
-    if (OR.str=="log-linear") {
+    if (corstr=="log-linear") {
       alpha_nam <- c("Delta", "Delta_2", "Delta_22")
     }
   }

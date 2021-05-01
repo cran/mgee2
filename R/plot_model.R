@@ -36,11 +36,10 @@ plot_model <- function(x, conv = FALSE){
     y=c(odd_beta,odd_alpha),
     lower=c(beta_ci_lower,alpha_ci_lower),
     upper=c(beta_ci_upper,alpha_ci_upper))
-  p <- ggplot(df, aes(x = x, y=y)) + labs(x = "order of estimators", y = "odds ratio") + geom_point(colour="red")
+  p <- ggplot(df, aes(x = x, y=y)) + labs(x = "order of estimators", y = "exp(point estimates)") + geom_point(colour="red")
   p= p + theme_bw()
   p = p + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                 panel.background = element_blank(), axis.line = element_line(colour = "black"))
-  p = p + geom_hline(yintercept=1, colour = "green", lty = 3)
   p = p + geom_linerange(aes(ymin = lower, ymax = upper),colour="blue")
   p = p + coord_flip()
   print(p)

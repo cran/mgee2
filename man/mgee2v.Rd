@@ -5,40 +5,40 @@
 \title{mgee2v}
 \usage{
 mgee2v(
-  obsform,
+  formula,
   id,
-  obsdat,
-  OR.str = "exchangeable",
-  W.nam = "W",
-  delta.nam = "delta",
-  Y.mcform,
-  X.mcform,
+  data,
+  corstr = "exchangeable",
+  misvariable = "W",
+  valid.sample.ind = "delta",
+  y.mcformula,
+  x.mcformula,
   maxit = 50,
   tol = 0.001
 )
 }
 \arguments{
-\item{obsform}{a formula object which specifies the relationship between 
+\item{formula}{a formula object which specifies the relationship between 
 the response and covariates for the observed data.}
 
 \item{id}{a character object which records individual id in the data.}
 
-\item{obsdat}{a dataframe or matrix object for the observed data set.}
+\item{data}{a dataframe or matrix object for the observed data set.}
 
-\item{OR.str}{a character object. The default value is "exchangeable", 
+\item{corstr}{a character object. The default value is "exchangeable", 
 corresponding to the structure where the association between two paired 
 responses is considered to be a constant. The other option is "log-linear" 
 which  indicates the log-linear association between two paired responses.}
 
-\item{W.nam}{a character object which names the error-prone covariate W.}
+\item{misvariable}{a character object which names the error-prone covariate W.}
 
-\item{delta.nam}{a string object which names the indicator variable delta. 
+\item{valid.sample.ind}{a string object which names the indicator variable delta. 
 When a data point belongs to the validation set, delta = 1; otherwise 0.}
 
-\item{Y.mcform}{a string object which indicates the misclassification formula
+\item{y.mcformula}{a string object which indicates the misclassification formula
 between true response Y and surrogate(observed) response S.}
 
-\item{X.mcform}{a string object which indicates the  misclassification formula
+\item{x.mcformula}{a string object which indicates the  misclassification formula
 between true error-prone covariate X and surrogate W.}
 
 \item{maxit}{an integer which specifies the maximum number of iterations. The default is 50.}
@@ -47,11 +47,11 @@ between true error-prone covariate X and surrogate W.}
 }
 \value{
 A list with component
-    \item{beta}{Coefficients in the order of 1) all non-baseline levels for response,
+    \item{beta}{the coefficients in the order of 1) all non-baseline levels for response,
     2) covariates - same order as specified in the formula}
-    \item{alpha}{Coefficients for paired responses global odds ratios. Number of alpha
-    coefficients corresponds to the paired responses odds ratio structure selected in "OR.str";
-    when OR.str="exchangeable", only one baseline alpha is fitted.}
+    \item{alpha}{the coefficients for paired responses global odds ratios. Number of alpha
+    coefficients corresponds to the paired responses odds ratio structure selected in "corstr";
+    when corstr="exchangeable", only one baseline alpha is fitted.}
     \item{variance}{variance-covariance matrix of all fitted parameters}
     \item{convergence}{a logical variable, TRUE if the model converges}
     \item{iteration}{number of iterations for the model to converge}
@@ -59,6 +59,15 @@ A list with component
 }
 \description{
 Corrected GEE2 for ordinal data, with validation subsample
+}
+\details{
+The function \emph{mgee2v} does not require the misclassification parameters to be known, 
+but require the availability  of validation data.
+Similar to \emph{mgee2k}, the function \emph{mgee2v} needs the data set to be structured by individual id, i=1,...,n, and visit time, j_i=1,...,m_i. 
+The data set should contain the observed response and covariates S and W. 
+To indicate whether or not a subject is in the validation set, an indicator variable 
+\emph{delta} should be added in the data set, and we use a column named \emph{valid.sample.ind} for this purpose. 
+The column name of the error-prone covariate W should also be specified in \emph{misvariable}.
 }
 \examples{
   if(0){
@@ -69,8 +78,12 @@ Corrected GEE2 for ordinal data, with validation subsample
   obs1$treatment <- as.factor(obs1$treatment)
   obs1$S <- as.factor(obs1$S)
   obs1$W <- as.factor(obs1$W)
-  mgee2v.fit = mgee2v(obsform = S~W+treatment+visit, id = "ID", obsdat = obs1,
-                      Y.mcform = "S~1", X.mcform = "W~1", W.nam = "W",delta.nam = "delta",
-                      OR.str = "exchangeable")
+  mgee2v.fit = mgee2v(formula = S~W+treatment+visit, id = "ID", data = obs1,
+                      y.mcformula = "S~1", x.mcformula = "W~1", misvariable = "W",
+                      valid.sample.ind = "delta",
+                      corstr = "exchangeable")
   }
+}
+\references{
+Z. Chen, G. Y. Yi, and C. Wu. Marginal analysis of longitudinal ordinal data with misclassification inboth response and covariates. \emph{Biometrical Journal}, 56(1):69-85, Oct. 2014
 }

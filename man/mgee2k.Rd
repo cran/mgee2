@@ -5,11 +5,11 @@
 \title{mgee2k}
 \usage{
 mgee2k(
-  obsform,
+  formula,
   id,
-  obsdat,
-  OR.str = "exchangeable",
-  W.nam,
+  data,
+  corstr = "exchangeable",
+  misvariable,
   gamMat,
   varphiMat,
   maxit = 50,
@@ -17,19 +17,19 @@ mgee2k(
 )
 }
 \arguments{
-\item{obsform}{a formula object which specifies the relationship between 
+\item{formula}{a formula object which specifies the relationship between 
 the response and covariates for the observed data.}
 
 \item{id}{a character object which records individual id in the data.}
 
-\item{obsdat}{a dataframe or matrix object for the observed data set.}
+\item{data}{a dataframe or matrix object for the observed data set.}
 
-\item{OR.str}{a character object. The default value is "exchangeable", 
+\item{corstr}{a character object. The default value is "exchangeable", 
 corresponding to the structure where the association between two paired 
 responses is considered to be a constant. The other option is "log-linear" 
 which  indicates the log-linear association between two paired responses.}
 
-\item{W.nam}{a character object which names the error-prone covariate W.}
+\item{misvariable}{a character object which names the error-prone covariate W.}
 
 \item{gamMat}{a matrix object which records the misclassification parameter gamma for response Y.}
 
@@ -41,11 +41,11 @@ which  indicates the log-linear association between two paired responses.}
 }
 \value{
 A list with component
-    \item{beta}{Coefficients in the order as those specified in the formula for the response and covariates.}
-    \item{alpha}{Coefficients for paired responses global odds ratios. The number of 
+    \item{beta}{the coefficients in the order as those specified in the formula for the response and covariates.}
+    \item{alpha}{the oefficients for paired responses global odds ratios. The number of 
     alpha coefficients corresponds to the paired responses odds ratio structure selected
-     in OR.str. When OR.str="exchangeable", only one baseline alpha 
-     is fitted. When OR.str="log-linear", baseline, first order, 
+     in corstr. When corstr="exchangeable", only one baseline alpha 
+     is fitted. When corstr="log-linear", baseline, first order, 
      second order (interaction) terms are fitted.}
     \item{variance}{variance-covariance matrix of the estimator of all parameters.}
     \item{convergence}{a logical variable; TRUE if the model converges.}
@@ -56,6 +56,11 @@ A list with component
 \description{
 Corrected GEE2 for ordinal data. This method yields unbiased estimators, but the
 misclassification parameters are required to known.
+}
+\details{
+\emph{mgee2k} implements the misclassification adjustment method outlined in Chen et al.(2014)
+ where the misclassification parameters are known. In this case, validation data are not required,
+ and only the observed data of the outcome and covariates are needed for the implementation.
 }
 \examples{
   if(0){
@@ -68,8 +73,11 @@ misclassification parameters are required to known.
   varphiMat <- gamMat <- log( cbind(0.04/0.95, 0.01/0.95,
                                     0.95/0.03, 0.02/0.03,
                                     0.04/0.01, 0.95/0.01) )
-  mgee2k.fit = mgee2k(obsform = S~W+treatment+visit, id = "ID", obsdat = obs1,
-                    OR.str = "exchangeable", W.nam = "W", gamMat = gamMat, 
+  mgee2k.fit = mgee2k(formula = S~W+treatment+visit, id = "ID", data = obs1,
+                    corstr = "exchangeable", misvariable = "W", gamMat = gamMat, 
                     varphiMat = varphiMat)
   }
+}
+\references{
+Z. Chen, G. Y. Yi, and C. Wu.  Marginal analysis of longitudinal ordinal data with misclassification inboth response and covariates. \emph{Biometrical Journal}, 56(1):69-85, Oct. 2014
 }

@@ -2,21 +2,28 @@
 #'
 #' Corrected GEE2 for ordinal data, with validation subsample
 #'
+#'The function \emph{mgee2v} does not require the misclassification parameters to be known, 
+#'but require the availability  of validation data.
+#' Similar to \emph{mgee2k}, the function \emph{mgee2v} needs the data set to be structured by individual id, i=1,...,n, and visit time, j_i=1,...,m_i. 
+#' The data set should contain the observed response and covariates S and W. 
+#' To indicate whether or not a subject is in the validation set, an indicator variable 
+#' \emph{delta} should be added in the data set, and we use a column named \emph{valid.sample.ind} for this purpose. 
+#' The column name of the error-prone covariate W should also be specified in \emph{misvariable}. 
 #' @export
 #' @useDynLib mgee2
 #' @inheritParams mgee2k
-#' @param delta.nam  a string object which names the indicator variable delta. 
+#' @param valid.sample.ind  a string object which names the indicator variable delta. 
 #' When a data point belongs to the validation set, delta = 1; otherwise 0.
-#' @param Y.mcform a string object which indicates the misclassification formula
+#' @param y.mcformula a string object which indicates the misclassification formula
 #'  between true response Y and surrogate(observed) response S.
-#' @param X.mcform a string object which indicates the  misclassification formula
+#' @param x.mcformula a string object which indicates the  misclassification formula
 #'   between true error-prone covariate X and surrogate W.
 #' @return  A list with component
-#'     \item{beta}{Coefficients in the order of 1) all non-baseline levels for response,
+#'     \item{beta}{the coefficients in the order of 1) all non-baseline levels for response,
 #'     2) covariates - same order as specified in the formula}
-#'     \item{alpha}{Coefficients for paired responses global odds ratios. Number of alpha
-#'     coefficients corresponds to the paired responses odds ratio structure selected in "OR.str";
-#'     when OR.str="exchangeable", only one baseline alpha is fitted.}
+#'     \item{alpha}{the coefficients for paired responses global odds ratios. Number of alpha
+#'     coefficients corresponds to the paired responses odds ratio structure selected in "corstr";
+#'     when corstr="exchangeable", only one baseline alpha is fitted.}
 #'     \item{variance}{variance-covariance matrix of all fitted parameters}
 #'     \item{convergence}{a logical variable, TRUE if the model converges}
 #'     \item{iteration}{number of iterations for the model to converge}
@@ -30,50 +37,54 @@
 #'   obs1$treatment <- as.factor(obs1$treatment)
 #'   obs1$S <- as.factor(obs1$S)
 #'   obs1$W <- as.factor(obs1$W)
-#'   mgee2v.fit = mgee2v(obsform = S~W+treatment+visit, id = "ID", obsdat = obs1,
-#'                       Y.mcform = "S~1", X.mcform = "W~1", W.nam = "W",delta.nam = "delta",
-#'                       OR.str = "exchangeable")
+#'   mgee2v.fit = mgee2v(formula = S~W+treatment+visit, id = "ID", data = obs1,
+#'                       y.mcformula = "S~1", x.mcformula = "W~1", misvariable = "W",
+#'                       valid.sample.ind = "delta",
+#'                       corstr = "exchangeable")
 #'   }
-mgee2v <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam = "W", delta.nam = "delta",
-                   Y.mcform, X.mcform, maxit=50, tol=1e-3)  {
+#' @references
+#' Z. Chen, G. Y. Yi, and C. Wu. Marginal analysis of longitudinal ordinal data with misclassification inboth response and covariates. \emph{Biometrical Journal}, 56(1):69-85, Oct. 2014
+
+mgee2v <- function(formula, id, data, corstr="exchangeable", misvariable = "W", valid.sample.ind = "delta",
+                   y.mcformula, x.mcformula, maxit=50, tol=1e-3)  {
 
   #fixed.gamma <- FALSE
 
   ## Initial estimates
-  naigee2.fit <- ordGEE2(formula=obsform, id=id,
-                         OR.str=OR.str, data=obsdat)
+  naigee2.fit <- ordGEE2(formula=formula, id=id,
+                         corstr=corstr, data=data)
   beta_est.init <- naigee2.fit$beta
   alpha_est.init <- naigee2.fit$alpha
   p_b <- length(beta_est.init)
   p_a <- length(alpha_est.init)
 
-  ID <- obsdat[, as.character(id)]
-  S.nam <- as.character(obsform)[2]
-  # S.nam <- strsplit(obsform, "~")[[1]][1]
-  # fac.terms <- strsplit(obsform, "~")[[1]][2]
-  # W.nam <- strsplit(fac.terms, split="\\+")[[1]][1]
+  ID <- data[, as.character(id)]
+  S.nam <- as.character(formula)[2]
+  # S.nam <- strsplit(formula, "~")[[1]][1]
+  # fac.terms <- strsplit(formula, "~")[[1]][2]
+  # misvariable <- strsplit(fac.terms, split="\\+")[[1]][1]
 
   N <- length(ID)
   n <- length(unique(ID))
   clsize.vec <- as.vector(table(ID))
   m <- clsize.vec[1]
-  K <- length(unique(obsdat[,S.nam])) - 1
-  K_x <- length(unique(obsdat[,W.nam])) - 1
+  K <- length(unique(data[,S.nam])) - 1
+  K_x <- length(unique(data[,misvariable])) - 1
   f <- kronecker(ID, rep(1,K))
 
-  DM <- getDM(formula=obsform, data=obsdat)
+  DM <- getDM(formula=formula, data=data)
   DM <- cbind(matrix(rep(diag(K), sum(clsize.vec)),ncol=K, byrow=T),
               DM[kronecker(1:sum(clsize.vec),rep(1,K)),-1])
   p_b <- ncol(DM)
 
-  S.c <- as.factor(obsdat[, S.nam])
+  S.c <- as.factor(data[, S.nam])
   Y.levs <- levels(S.c)
-  W.c <- as.factor(obsdat[,W.nam])
+  W.c <- as.factor(data[,misvariable])
   X.levs <- levels(W.c)
-  delta <- obsdat[,delta.nam]
+  delta <- data[,valid.sample.ind]
 
   ## Estimate misclassification parameters (need modification)
-  vss <- obsdat[delta==1, ]
+  vss <- data[delta==1, ]
   gamMat.est <- matrix(0, nrow=1, ncol=K*(K+1))
   gamMat.var <- matrix(0, nrow=1, ncol=K*(K+1))
   for (k in 0:K) {
@@ -84,7 +95,7 @@ mgee2v <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam = "W", delt
                      (vss[, S.nam] == Y.levs[1]) )
       vss.k <- vss[kl.indx | k0.indx, ]
       if ( (sum(kl.indx) * sum(k0.indx)) != 0 ) {
-        glm.k <- glm(Y.mcform, family=binomial, data=vss.k)
+        glm.k <- glm(y.mcformula, family=binomial, data=vss.k)
         gamMat.est[, k*K+l] <- coef(glm.k)
         gamMat.var[, k*K+l] <- summary(glm.k)$cov.un
       } else {
@@ -104,12 +115,12 @@ mgee2v <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam = "W", delt
   for (k in 0:K_x) {
     for (l in 1:K_x) {
       kl.indx <- ( (vss$X == X.levs[k+1]) &
-                     (vss[, W.nam] == X.levs[l+1]) )
+                     (vss[, misvariable] == X.levs[l+1]) )
       k0.indx <- ( (vss$X == X.levs[k+1]) &
-                     (vss[, W.nam] == X.levs[1]) )
+                     (vss[, misvariable] == X.levs[1]) )
       vss.k <- vss[kl.indx | k0.indx, ]
       if ( (sum(kl.indx) * sum(k0.indx)) != 0 ) {
-        glm.k <- glm(X.mcform, family=binomial, data=vss.k)
+        glm.k <- glm(x.mcformula, family=binomial, data=vss.k)
         varphiMat.est[, k*K_x+l] <- coef(glm.k)
         varphiMat.var[, k*K_x+l] <- summary(glm.k)$cov.un
       } else {
@@ -128,14 +139,14 @@ mgee2v <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam = "W", delt
   Y.Mat <- matrix(0, nrow=N, ncol=K)
   for (k in 1:K) {
     S.Mat[, k] <- as.numeric(S.c == Y.levs[k+1])
-    Y.Mat[, k] <- as.numeric(obsdat$Y == Y.levs[k+1])
+    Y.Mat[, k] <- as.numeric(data$Y == Y.levs[k+1])
   }
   S <- as.vector(t(S.Mat))
   W.Mat <- matrix(0, nrow=N, ncol=K_x)
   X.Mat <- matrix(0, nrow=N, ncol=K_x)
   for (k in 1:K_x) {
     W.Mat[, k] <- as.numeric(W.c == X.levs[k+1])
-    X.Mat[, k] <- as.numeric(obsdat$X == X.levs[k+1])
+    X.Mat[, k] <- as.numeric(data$X == X.levs[k+1])
   }
 
   ## -----------------------------------------
@@ -292,10 +303,10 @@ mgee2v <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam = "W", delt
       k2.indx <- c(k2.indx, kronecker(rep(1,K), 1:K))
     }
   }
-  if (OR.str=="exchangeable") {
+  if (corstr=="exchangeable") {
     assocDM <- matrix(rep(1, length(Ztilde)), ncol=p_a)
   } else {
-    if (OR.str=="log-linear") {
+    if (corstr=="log-linear") {
       assocDM_i <- cbind(rep(1, length(j1.indx)),
                          (as.numeric(k1.indx==2) +
                             as.numeric(k2.indx==2)),
@@ -450,10 +461,10 @@ mgee2v <- function(obsform, id, obsdat, OR.str="exchangeable", W.nam = "W", delt
   beta_nam <- c(unlist(lapply("Y>=", 1:K, FUN=paste, sep="")),
                 dimnames(DM)[[2]][-(1:K)])
   alpha_nam <- NULL
-  if (OR.str=="exchangeable") {
+  if (corstr=="exchangeable") {
     alpha_nam <- "Delta"
   } else {
-    if (OR.str=="log-linear") {
+    if (corstr=="log-linear") {
       alpha_nam <- c("Delta", "Delta_2", "Delta_22")
     }
   }

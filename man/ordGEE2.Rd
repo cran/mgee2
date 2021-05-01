@@ -4,7 +4,7 @@
 \alias{ordGEE2}
 \title{ordGEE2}
 \usage{
-ordGEE2(formula, id, data, OR.str = "exchangeable", maxit = 50, tol = 0.001)
+ordGEE2(formula, id, data, corstr = "exchangeable", maxit = 50, tol = 0.001)
 }
 \arguments{
 \item{formula}{a formula object: a symbolic description of the model with error-prone
@@ -15,7 +15,7 @@ response, error-prone covariates and other covariates.}
 \item{data}{a dataframe or matrix of the observed data, including id, error-prone ordinal response
 error-prone ordinal covaritaes, other covariates.}
 
-\item{OR.str}{a character object. The default value is "exchangeable", 
+\item{corstr}{a character object. The default value is "exchangeable", 
 corresponding to the structure where the association between two paired 
 responses is considered to be a constant. The other option is "log-linear" 
 which  indicates the log-linear association between two paired responses.}
@@ -26,24 +26,11 @@ which  indicates the log-linear association between two paired responses.}
 }
 \value{
 A list with component
-    \item{beta}{Coefficients in the order as those specified in the formula for the response and covariates.}
-    \item{alpha}{Coefficients for paired responses global odds ratios. The number of 
-    alpha coefficients corresponds to the paired responses odds ratio structure selected
-     in OR.str. When OR.str="exchangeable", only one baseline alpha 
-     is fitted. When OR.str="log-linear", baseline, first order, 
-     second order (interaction) terms are fitted.}
-    \item{variance}{variance-covariance matrix of the estimator of all parameters.}
-    \item{convergence}{a logical variable; TRUE if the model converges.}
-    \item{iteration}{the number of iterations for the estimates of the model parameters to converge.}
-    \item{differ}{a list of difference of estimation for convergence}   
-    \item{call}{Function called}
-
-A list with component
-    \item{beta}{Coefficients in the order of 1) all non-baseline levels for response,
+    \item{beta}{the coefficients in the order of 1) all non-baseline levels for response,
     2) covariates - same order as specified in the formula}
-    \item{alpha}{Coefficients for paired responses global odds ratios. Number of alpha
-    coefficients corresponds to the paired responses odds ratio structure selected in "OR.str";
-    when OR.str="exchangeable", only one baseline alpha is fitted.}
+    \item{alpha}{the coefficients for paired responses global odds ratios. Number of alpha
+    coefficients corresponds to the paired responses odds ratio structure selected in "corstr";
+    when corstr="exchangeable", only one baseline alpha is fitted.}
     \item{variance}{variance-covariance matrix of all fitted parameters}
     \item{convergence}{a logical variable, TRUE if the model converges}
     \item{iteration}{number of iterations for the model to converge}
@@ -55,6 +42,13 @@ This function provides a naive approach to estimate the data without any correct
 or misclassification parameters. This may lead to biased estimation for response
 parameters.
 }
+\details{
+In addition to developing the package \emph{mgee2} to implement the methods of Chen et al.(2014) which accommodate 
+misclassification effects in inferential procedures, we also implement the naive method of ignoring the feature of misclassification, 
+and call the resulting function \emph{ordGEE2}. 
+This function can be used together with the precedingly described \emph{mgee2k} or \emph{mgee2v} to evaluate the impact of not 
+addressing misclassification effects
+}
 \examples{
   data(obs1)
   obs1$Y <- as.factor(obs1$Y)
@@ -64,6 +58,9 @@ parameters.
   obs1$S <- as.factor(obs1$S)
   obs1$W <- as.factor(obs1$W)
   naigee.fit = ordGEE2(formula = S~W+treatment+visit, id = "ID",
-                       data = obs1, OR.str = "exchangeable")
+                       data = obs1, corstr = "exchangeable")
 
+}
+\references{
+Z. Chen, G. Y. Yi, and C. Wu. Marginal analysis of longitudinal ordinal data with misclassification inboth response and covariates. \emph{Biometrical Journal}, 56(1):69-85, Oct. 2014
 }

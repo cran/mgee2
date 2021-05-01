@@ -3,6 +3,12 @@
 #' This function provides a naive approach to estimate the data without any correction
 #' or misclassification parameters. This may lead to biased estimation for response
 #' parameters.
+#' 
+#' In addition to developing the package \emph{mgee2} to implement the methods of Chen et al.(2014) which accommodate 
+#' misclassification effects in inferential procedures, we also implement the naive method of ignoring the feature of misclassification, 
+#' and call the resulting function \emph{ordGEE2}. 
+#' This function can be used together with the precedingly described \emph{mgee2k} or \emph{mgee2v} to evaluate the impact of not 
+#' addressing misclassification effects
 #' @export
 #' @useDynLib mgee2
 #' @param formula a formula object: a symbolic description of the model with error-prone
@@ -10,24 +16,13 @@
 #' @param id a character object which records individual id in the data.
 #' @param data a dataframe or matrix of the observed data, including id, error-prone ordinal response
 #'   error-prone ordinal covaritaes, other covariates.
-#' @param OR.str a character object. The default value is "exchangeable", 
+#' @param corstr a character object. The default value is "exchangeable", 
 #'   corresponding to the structure where the association between two paired 
 #'   responses is considered to be a constant. The other option is "log-linear" 
 #'   which  indicates the log-linear association between two paired responses.
 #' @param maxit an integer which specifies the maximum number of iterations. The default is 50.
 #' @param tol a numeric object which indicates the tolerance threshold. The default is 1e-3.
-#' @return  A list with component
-#'     \item{beta}{Coefficients in the order as those specified in the formula for the response and covariates.}
-#'     \item{alpha}{Coefficients for paired responses global odds ratios. The number of 
-#'     alpha coefficients corresponds to the paired responses odds ratio structure selected
-#'      in OR.str. When OR.str="exchangeable", only one baseline alpha 
-#'      is fitted. When OR.str="log-linear", baseline, first order, 
-#'      second order (interaction) terms are fitted.}
-#'     \item{variance}{variance-covariance matrix of the estimator of all parameters.}
-#'     \item{convergence}{a logical variable; TRUE if the model converges.}
-#'     \item{iteration}{the number of iterations for the estimates of the model parameters to converge.}
-#'     \item{differ}{a list of difference of estimation for convergence}   
-#'     \item{call}{Function called}
+#' 
 #'
 #' @examples
 #'   data(obs1)
@@ -38,22 +33,24 @@
 #'   obs1$S <- as.factor(obs1$S)
 #'   obs1$W <- as.factor(obs1$W)
 #'   naigee.fit = ordGEE2(formula = S~W+treatment+visit, id = "ID",
-#'                        data = obs1, OR.str = "exchangeable")
+#'                        data = obs1, corstr = "exchangeable")
 #'
 #' @return  A list with component
-#'     \item{beta}{Coefficients in the order of 1) all non-baseline levels for response,
+#'     \item{beta}{the coefficients in the order of 1) all non-baseline levels for response,
 #'     2) covariates - same order as specified in the formula}
-#'     \item{alpha}{Coefficients for paired responses global odds ratios. Number of alpha
-#'     coefficients corresponds to the paired responses odds ratio structure selected in "OR.str";
-#'     when OR.str="exchangeable", only one baseline alpha is fitted.}
+#'     \item{alpha}{the coefficients for paired responses global odds ratios. Number of alpha
+#'     coefficients corresponds to the paired responses odds ratio structure selected in "corstr";
+#'     when corstr="exchangeable", only one baseline alpha is fitted.}
 #'     \item{variance}{variance-covariance matrix of all fitted parameters}
 #'     \item{convergence}{a logical variable, TRUE if the model converges}
 #'     \item{iteration}{number of iterations for the model to converge}
 #'     \item{differ}{a list of difference of estimation for convergence}   ##
 #'     \item{call}{Function called}
+#' @references
+#' Z. Chen, G. Y. Yi, and C. Wu. Marginal analysis of longitudinal ordinal data with misclassification inboth response and covariates. \emph{Biometrical Journal}, 56(1):69-85, Oct. 2014
 
 
-ordGEE2 <- function(formula, id, data, OR.str="exchangeable",
+ordGEE2 <- function(formula, id, data, corstr="exchangeable",
                     maxit=50, tol=1e-3)  {
 
 
@@ -88,12 +85,15 @@ ordGEE2 <- function(formula, id, data, OR.str="exchangeable",
   init.glm <- glm(formula=eval(parse(text=form.k)),
                   family=binomial,data=data)
   beta_est.init <- coefficients(init.glm)
-  for(k in (K-1):1){
-    form.k <- paste("as.numeric(Resp>=k)", as.character(formula)[3], sep="~")
-    init.glm <- glm(formula=eval(parse(text=form.k)),
-                    family=binomial,data=data)
-    beta_est.init <- c(coefficients(init.glm)[1], beta_est.init)
+  if(K>1){
+    for(k in (K-1):1){
+      form.k <- paste("as.numeric(Resp>=k)", as.character(formula)[3], sep="~")
+      init.glm <- glm(formula=eval(parse(text=form.k)),
+                      family=binomial,data=data)
+      beta_est.init <- c(coefficients(init.glm)[1], beta_est.init)
+    }
   }
+  
 
   j1.indx <- NULL
   k1.indx <- NULL
@@ -109,12 +109,12 @@ ordGEE2 <- function(formula, id, data, OR.str="exchangeable",
   }
   indx.tab <- cbind(j1.indx, k1.indx, j2.indx, k2.indx)
   indx.tab.t <- t(indx.tab)
-  if (OR.str=="exchangeable") {
+  if (corstr=="exchangeable") {
     alpha_est.init <- 0.5
     p_a <- 1
     assocDM <- matrix(rep(1, length(Z)), ncol=p_a)
   } else {
-    if (OR.str=="log-linear") {
+    if (corstr=="log-linear") {
       p_a <- K + K * (K - 1)/2
       alpha_est.init <- c(log(3), rep(0, p_a-1))
 
@@ -215,10 +215,10 @@ ordGEE2 <- function(formula, id, data, OR.str="exchangeable",
   beta_nam <- c(unlist(lapply("Y>=", 1:K, FUN=paste, sep="")),
                 dimnames(DM)[[2]][-(1:K)])
   alpha_nam <- NULL
-  if (OR.str=="exchangeable") {
+  if (corstr=="exchangeable") {
     alpha_nam <- "Delta"
   } else {
-    if (OR.str=="log-linear") {
+    if (corstr=="log-linear") {
       alpha_nam <- c("Delta", "Delta_2", "Delta_22")
     }
   }
