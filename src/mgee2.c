@@ -235,7 +235,8 @@ void Cgetmgee2v_i(
                 VC_GEE_plug(U_1i_l, U_i_l, 0, 0);
                 VC_GEE_plug(U_2i_l, U_i_l, p_b, 0);
 
-                matrix_addto(U_i_l, U_i, 0, 0);
+                // matrix_addto(U_i_l, U_i, 0, 0);
+                matrix_addto(U_i_l, U_i);
 
                 /* Account for estimated $\eta$ */
                 if ( MEL(wgt_i, 0, l) != 0 ) {
@@ -259,8 +260,7 @@ void Cgetmgee2v_i(
                         L_x_ij,
                         delta_i,
                         m,
-                        K_x,
-                        p_vp);
+                        K_x);
 
                     /* Update Lambda_vp_i */
                     for (rr = 0; rr < p_t; rr++)
@@ -1264,9 +1264,7 @@ void Cgetordgee2_i(double *S_DM_i,
 /* -----------   Support functions  2010/03/08   ----------- */
 
 
-static MATRIX *VC_GEE_create_matrix(nrows, ncols, permanence)
-int nrows, ncols, permanence;
-{
+static MATRIX *VC_GEE_create_matrix(int nrows, int ncols, int permanence){
     MATRIX *tmp;
     double *head;
     int i;
@@ -1306,9 +1304,7 @@ int nrows, ncols, permanence;
     return tmp;
 }
 
-static void VC_GEE_destroy_matrix(mat)
-MATRIX *mat;
-{
+static void VC_GEE_destroy_matrix(MATRIX *mat){
     if (mat == (MATRIX *) NULL) return;
 
     mat->nrows = 0;
@@ -1321,9 +1317,7 @@ MATRIX *mat;
 
 
 
-static MATRIX *VC_GEE_transp(mat)
-MATRIX *mat;
-{
+static MATRIX *VC_GEE_transp(MATRIX *mat){
     double *telem, *inelem, *tbase;
     int nelem;
     MATRIX *tmp;
@@ -1345,10 +1339,7 @@ MATRIX *mat;
 }
 
 
-static MATRIX *VC_GEE_extract_rows(Source,VC_GEE_start,end)
-MATRIX *Source;
-int VC_GEE_start, end;
-{
+static MATRIX *VC_GEE_extract_rows(MATRIX *Source,int VC_GEE_start,int end){
     MATRIX *temp;
     int rows_to_get, i, j;
 
@@ -1371,10 +1362,7 @@ int VC_GEE_start, end;
     return temp;
 }
 
-static MATRIX *VC_GEE_extract_cols(x, VC_GEE_start, end)
-MATRIX *x;
-int VC_GEE_start, end;
-{
+static MATRIX *VC_GEE_extract_cols(MATRIX *x, int VC_GEE_start, int end){
     MATRIX *tmp;
     tmp = VC_GEE_transp(x);
     tmp = VC_GEE_extract_rows(tmp, VC_GEE_start, end);
@@ -1383,9 +1371,7 @@ int VC_GEE_start, end;
     return tmp;
 }
 
-static MATRIX *VC_GEE_matcopy(inmat)
-MATRIX *inmat;
-{
+static MATRIX *VC_GEE_matcopy(MATRIX *inmat){
     int i, j;
     MATRIX *outmat;
 
@@ -1400,9 +1386,7 @@ MATRIX *inmat;
     return outmat;
 }
 
-static int VC_GEE_split(matptr, discptr, matarrptr)
-MATRIX *matptr, *discptr, *matarrptr[];
-{
+static int VC_GEE_split(MATRIX *matptr, MATRIX *discptr, MATRIX *matarrptr[]){
     int i, iVC_GEE_start, k, VC_GEE_start, end;
     if (discptr->ncols != 1)
     {
@@ -1431,10 +1415,7 @@ MATRIX *matptr, *discptr, *matarrptr[];
 }
 
 
-static void VC_GEE_plug(VC_GEE_plugm, socket, row, col)
-int row, col;
-MATRIX *VC_GEE_plugm, *socket;
-{
+static void VC_GEE_plug(MATRIX *VC_GEE_plugm, MATRIX *socket,int row,int col){
     int pcol, prow;
     double *sockload, *VC_GEE_plughead, *sockrow_VC_GEE_start;
     int i,j;
@@ -1463,9 +1444,7 @@ MATRIX *VC_GEE_plugm, *socket;
     free_if_ephemeral(VC_GEE_plugm);
 }
 
-static MATRIX *VC_GEE_form_diag(vec)
-MATRIX *vec;
-{
+static MATRIX *VC_GEE_form_diag(MATRIX *vec){
     MATRIX *tmp;
     int i, ord;
 
@@ -1480,8 +1459,7 @@ MATRIX *vec;
 
 #define get_nelem(x) (((x)->nrows) * ((x)->ncols))
 
-static double VC_GEE_elsum(x)
-MATRIX *x;
+static double VC_GEE_elsum(MATRIX *x)
 {
     double t=0.;
     double *loc;
@@ -1495,9 +1473,7 @@ MATRIX *x;
     return t;
 }
 
-static MATRIX *VC_GEE_matabs(x)
-MATRIX *x;
-{
+static MATRIX *VC_GEE_matabs(MATRIX *x){
     double *load, *look;
     MATRIX *tmp;
     int nelem, i;
@@ -1513,9 +1489,7 @@ MATRIX *x;
 }
 
 
-static double VC_GEE_matmax(x)
-MATRIX *x;
-{
+static double VC_GEE_matmax(MATRIX *x){
     double t;
     double *loc;
     int i, nelem;
@@ -1533,9 +1507,7 @@ MATRIX *x;
 }
 
 
-static MATRIX *VC_GEE_matexp(x)
-MATRIX *x;
-{
+static MATRIX *VC_GEE_matexp(MATRIX *x){
     double *load, *look;
     MATRIX *tmp;
     int nelem, i;
@@ -1551,9 +1523,7 @@ MATRIX *x;
 }
 
 
-static MATRIX *VC_GEE_matadd(mat1, mat2)
-MATRIX *mat1, *mat2;
-{
+static MATRIX *VC_GEE_matadd(MATRIX *mat1, MATRIX *mat2){
     MATRIX *result;
     double *mat1base, *mat2base, *resbase;
     int i, j;
@@ -1580,9 +1550,7 @@ MATRIX *mat1, *mat2;
 }
 
 
-static MATRIX *VC_GEE_matsub(mat1, mat2)
-MATRIX *mat1, *mat2;
-{
+static MATRIX *VC_GEE_matsub(MATRIX *mat1, MATRIX *mat2){
     MATRIX *result;
     double *mat1base, *mat2base, *resbase;
     int i, j;
@@ -1609,9 +1577,7 @@ MATRIX *mat1, *mat2;
 }
 
 
-static MATRIX *VC_GEE_matmult(mat1, mat2)
-MATRIX *mat1, *mat2;
-{
+static MATRIX *VC_GEE_matmult(MATRIX *mat1, MATRIX *mat2){
     double *mat1base, *mat1loc, *mat2base, *mat2loc, *resbase;
     MATRIX *result;
     int i, rows, j;
@@ -1651,9 +1617,7 @@ MATRIX *mat1, *mat2;
 }
 
 
-static MATRIX *VC_GEE_px1_times_pxq(px1, pxq)
-MATRIX *px1, *pxq;
-{
+static MATRIX *VC_GEE_px1_times_pxq(MATRIX *px1, MATRIX *pxq){
     MATRIX *tmp;
     double *load, colel;
     int i, j;
@@ -1683,9 +1647,7 @@ MATRIX *px1, *pxq;
 }
 
 
-static MATRIX *VC_GEE_pxq_divby_px1(pxq, px1)
-MATRIX *px1, *pxq;
-{
+static MATRIX *VC_GEE_pxq_divby_px1(MATRIX *pxq, MATRIX *px1){
     MATRIX *tmp;
     double *load, colel;
     int i, j;
@@ -1715,10 +1677,7 @@ MATRIX *px1, *pxq;
 }
 
 
-static MATRIX *VC_GEE_scalar_times_matrix(a, X)
-double a;
-MATRIX *X;
-{
+static MATRIX *VC_GEE_scalar_times_matrix(double a, MATRIX *X){
     MATRIX *tmp;
     double *tbase;
     int i, nelem;
@@ -1734,9 +1693,7 @@ MATRIX *X;
 }
 
 
-static MATRIX *VC_GEE_ident(ord)
-int ord;
-{
+static MATRIX *VC_GEE_ident(int ord){
     MATRIX *I;
     int i;
 
@@ -1747,9 +1704,7 @@ int ord;
 }
 
 
-static MATRIX *VC_GEE_col_1s(k)
-int k;
-{
+static MATRIX *VC_GEE_col_1s(int k){
     MATRIX *tmp;
     int i;
     tmp = VC_GEE_create_matrix(k, 1, EPHEMERAL);
@@ -1761,9 +1716,7 @@ int k;
 }
 
 
-static int VC_GEE_nchanges(X)
-MATRIX *X;
-{
+static int VC_GEE_nchanges(MATRIX *X){
     int tmp = 1, iVC_GEE_start, i;
 
     if (X->ncols != 1)
@@ -1786,9 +1739,7 @@ MATRIX *X;
 }
 
 
-static MATRIX *VC_GEE_diag_as_vec(inmat)
-MATRIX *inmat;
-{
+static MATRIX *VC_GEE_diag_as_vec(MATRIX *inmat){
     int i;
     MATRIX *outmat;
 
@@ -1806,9 +1757,7 @@ MATRIX *inmat;
 }
 
 
-static MATRIX *VC_GEE_matsqrt(x)
-MATRIX *x;
-{
+static MATRIX *VC_GEE_matsqrt(MATRIX *x){
     int i,j;
     MATRIX *tmp;
     tmp= VC_GEE_matcopy(x);
@@ -1824,9 +1773,7 @@ MATRIX *x;
 }
 
 
-static MATRIX *VC_GEE_mat1over(x)
-MATRIX *x;
-{
+static MATRIX *VC_GEE_mat1over(MATRIX *x){
     int i,j;
     MATRIX *tmp;
     tmp = VC_GEE_matcopy(x);
@@ -1843,9 +1790,7 @@ MATRIX *x;
 
 /* ---- Witten by Z. Chen ---- */
 
-static MATRIX *get_seq1(el_start, end)
-int el_start, end;
-{
+static MATRIX *get_seq1(int el_start, int end){
     int i;
     int nelem = end - el_start + 1;
     double *load;
@@ -1860,9 +1805,7 @@ int el_start, end;
     return tmp;
 }
 
-static MATRIX *get_rep_scalar(a, nrep)
-int a, nrep;
-{
+static MATRIX *get_rep_scalar(int a, int nrep){
     int i;
     MATRIX *tmp;
     double *load;
@@ -1876,10 +1819,7 @@ int a, nrep;
     return tmp;
 }
 
-static MATRIX *get_rep(x, nrep)
-MATRIX *x;
-int nrep;
-{
+static MATRIX *get_rep(MATRIX *x, int nrep){
     int i, j;
     double *load, *look;
     int nelem = get_nelem(x);
@@ -1899,9 +1839,7 @@ int nrep;
     return tmp;
 }
 
-static MATRIX *get_kronecker(x, y)
-MATRIX *x, *y;  /* x and y are colvecs */
-{
+static MATRIX *get_kronecker(MATRIX *x, MATRIX *y){
     int i, j;
     double *load, *lookx, *looky;
     MATRIX *tmp;
@@ -1923,9 +1861,7 @@ MATRIX *x, *y;  /* x and y are colvecs */
 }
 
 /* Sum the elements in each row and get a column vector*/
-static MATRIX *get_sum1row(inmat)
-MATRIX *inmat;
-{
+static MATRIX *get_sum1row(MATRIX *inmat){
     int i, j;
     double t;
     MATRIX *outmat;
@@ -1951,9 +1887,7 @@ MATRIX *inmat;
 
 
 /* Sum the elements in each column and get a row vector*/
-static MATRIX *get_sum2col(inmat)
-MATRIX *inmat;
-{
+static MATRIX *get_sum2col(MATRIX *inmat){
     int i, j;
     double t;
     MATRIX *outmat;
@@ -1979,9 +1913,7 @@ MATRIX *inmat;
 }
 
 
-static MATRIX *VC_GEE_matexpit(x)
-MATRIX *x;
-{
+static MATRIX *VC_GEE_matexpit(MATRIX *x){
     double *load, *look;
     double exp_val;
     int nelem, i;
@@ -2001,10 +1933,8 @@ MATRIX *x;
     return tmp ;
 }
 
-static void get_dlambda_i_dbetaT(dlambda_i_dbetaT,
-                                 lambda_i, DM_i)
-MATRIX *dlambda_i_dbetaT, *lambda_i, *DM_i;
-{
+static void get_dlambda_i_dbetaT(MATRIX *dlambda_i_dbetaT,
+                                 MATRIX *lambda_i, MATRIX *DM_i){
     double *load,  *look;
     double lam;
     int i, j;
@@ -2022,11 +1952,7 @@ MATRIX *dlambda_i_dbetaT, *lambda_i, *DM_i;
     }
 }
 
-static void get_dmu_i_dbetaT(dmu_i_dbetaT, dlambda_i_dbetaT, K, m)
-MATRIX  *dmu_i_dbetaT, *dlambda_i_dbetaT;
-int K;
-int m;
-{
+static void get_dmu_i_dbetaT(MATRIX  *dmu_i_dbetaT, MATRIX  *dlambda_i_dbetaT, int K, int m){
     int i, j, k, p_b;
     double *load, *look, *look2;
 
@@ -2059,9 +1985,7 @@ int m;
 }
 
 
-static void get_lambda_i(lambda_i, DM_i, beta)
-MATRIX *lambda_i, *DM_i, *beta;
-{
+static void get_lambda_i(MATRIX *lambda_i, MATRIX *DM_i, MATRIX *beta){
     int i, j;
     double *load, *l_ptr, *r_ptr;
     double lin;
@@ -2088,10 +2012,7 @@ MATRIX *lambda_i, *DM_i, *beta;
     }
 }
 
-static void get_mu_i(mu_i, lambda_i, K, m)
-MATRIX *mu_i, *lambda_i;
-int K, m;
-{
+static void get_mu_i(MATRIX *mu_i, MATRIX *lambda_i, int K, int m){
     double *load, *look;
     int j, k;
 
@@ -2109,9 +2030,7 @@ int K, m;
     }
 }
 
-static MATRIX *get_outer(vec1, vec2)
-MATRIX *vec1, *vec2;
-{
+static MATRIX *get_outer(MATRIX *vec1, MATRIX *vec2){
     MATRIX *tmp;
     double *load, *look1, *look2;
     int i, j;
@@ -2140,9 +2059,7 @@ MATRIX *vec1, *vec2;
     return tmp;
 }
 
-static MATRIX *get_rbind(mat1, mat2)
-MATRIX *mat1, *mat2;
-{
+static MATRIX *get_rbind(MATRIX *mat1, MATRIX *mat2){
     MATRIX *outmat;
     int i;
     double *load, *look;
@@ -2173,9 +2090,7 @@ MATRIX *mat1, *mat2;
     return outmat;
 }
 
-static MATRIX *get_cbind(mat1, mat2)
-MATRIX *mat1, *mat2;
-{
+static MATRIX *get_cbind(MATRIX *mat1, MATRIX *mat2){
     MATRIX *outmat;
     int i, j;
     double *load, *look1, *look2;
@@ -2210,9 +2125,7 @@ MATRIX *mat1, *mat2;
 }
 
 
-static int get_rowindex(m, K, j1, k1, j2, k2)
-int m, K, j1, k1, j2, k2;
-{
+static int get_rowindex(int m, int K, int j1, int k1, int j2, int k2){
     int indx;
     indx = (int) (pow(K, 2) * (2*m - j1 - 1) * j1/2. +
                   pow(K, 2) * (j2 - j1 -1) + k1*K + k2);
@@ -2480,8 +2393,7 @@ static void get_bivar_marginals_i(
 }
 
 
-static MATRIX *get_cholinv(X)
-MATRIX *X;
+static MATRIX *get_cholinv(MATRIX *X)
 {
     MATRIX *Y, *tempmat;
     int nrows, ncols;
@@ -2526,8 +2438,7 @@ MATRIX *X;
     return Y;
 }
 
-static void matrix_copyto(inmat, outmat)
-MATRIX *inmat, *outmat;
+static void matrix_copyto(MATRIX *inmat, MATRIX *outmat)
 {
     int i, j;
     if (((inmat->nrows) != (outmat->nrows)) || ((inmat->ncols) != (outmat->ncols)))
@@ -2544,9 +2455,7 @@ MATRIX *inmat, *outmat;
     free_if_ephemeral(inmat);
 }
 
-static void row_replace(inmat, i, outmat, j)
-MATRIX *inmat, *outmat;
-int i, j;
+static void row_replace(MATRIX *inmat, int i, MATRIX *outmat, int j)
 {
     double *load, *look;
     int col;
@@ -2567,9 +2476,7 @@ int i, j;
     free_if_ephemeral(inmat);
 }
 
-static void col_replace(inmat, i, outmat, j)
-MATRIX *inmat, *outmat;
-int i, j;
+static void col_replace(MATRIX *inmat, int i, MATRIX *outmat, int j)
 {
     double *load, *look;
     int row, in_ncols, out_ncols;
@@ -2593,9 +2500,7 @@ int i, j;
     free_if_ephemeral(inmat);
 }
 
-static void rows_plug(inmat, i1, i2, outmat, j)
-MATRIX *inmat, *outmat;
-int i1, i2, j;
+static void rows_plug(MATRIX *inmat, int i1, int i2, MATRIX *outmat, int j)
 {
     double *load, *look;
     int i, col;
@@ -2624,9 +2529,7 @@ int i1, i2, j;
     free_if_ephemeral(inmat);
 }
 
-static void cols_plug(inmat, i1, i2, outmat, j)
-MATRIX *inmat, *outmat;
-int i1, i2, j;
+static void cols_plug(MATRIX *inmat, int i1, int i2, MATRIX *outmat, int j)
 {
     int i, k;
     if ((inmat->nrows) != (outmat->nrows))
@@ -2649,8 +2552,7 @@ int i1, i2, j;
 }
 
 
-static void matrix_addto(inmat, outmat)
-MATRIX *inmat, *outmat;
+static void matrix_addto(MATRIX *inmat, MATRIX *outmat)
 {
     double *load, *look;
     int i;
@@ -2672,8 +2574,7 @@ MATRIX *inmat, *outmat;
 }
 
 
-static MATRIX *matrix_subtract(mat1, mat2)
-MATRIX *mat1, *mat2;
+static MATRIX *matrix_subtract(MATRIX *mat1, MATRIX *mat2)
 {
     MATRIX *outmat;
     double *load, *look1, *look2;
@@ -2699,8 +2600,7 @@ MATRIX *mat1, *mat2;
 }
 
 
-static MATRIX *matrix_multiply(mat1, mat2)
-MATRIX *mat1, *mat2;
+static MATRIX *matrix_multiply(MATRIX *mat1, MATRIX *mat2)
 {
     MATRIX *outmat;
     int i, j, k;
@@ -2731,8 +2631,7 @@ MATRIX *mat1, *mat2;
     return outmat;
 }
 
-static void matrix_elem_mult(inmat, outmat)
-MATRIX *inmat, *outmat;
+static void matrix_elem_mult(MATRIX *inmat, MATRIX *outmat)
 {
     double *load, *look;
     int i;
@@ -2754,8 +2653,7 @@ MATRIX *inmat, *outmat;
 }
 
 
-static void matrix_row_mult(rowvec, outmat) /* row vector times a matrix*/
-MATRIX *rowvec, *outmat;
+static void matrix_row_mult(MATRIX *rowvec, MATRIX *outmat) /* row vector times a matrix*/
 {
     double *load, *look;
     int i, j;
@@ -2780,8 +2678,7 @@ MATRIX *rowvec, *outmat;
 }
 
 
-static void matrix_col_mult(colvec, outmat) /* col vector times a matrix*/
-MATRIX *colvec, *outmat;
+static void matrix_col_mult(MATRIX *colvec, MATRIX *outmat) /* col vector times a matrix*/
 {
     double *load, *look;
     int i, j;
@@ -2805,9 +2702,7 @@ MATRIX *colvec, *outmat;
 }
 
 
-static void scalar_times_matrix(a, X)
-double a;
-MATRIX *X;
+static void scalar_times_matrix(double a, MATRIX *X)
 {
     double *load;
     int i, nelem;
@@ -2821,9 +2716,7 @@ MATRIX *X;
 }
 
 
-static MATRIX *get_matrix_row(X, i)
-MATRIX *X;
-int i;
+static MATRIX *get_matrix_row(MATRIX *X, int i)
 {
     MATRIX *rowvec;
     int j;
@@ -2839,8 +2732,7 @@ int i;
     return rowvec;
 }
 
-static void set_zero(X)
-MATRIX *X;
+static void set_zero(MATRIX *X)
 {
     int i, nel ;
     double *load;

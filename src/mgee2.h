@@ -75,95 +75,224 @@ for ( j = 0 ; j < Matptr->ncols ; j++ ) \
 /*      Subfunctions Declarations     */
 /**************************************/
 
-static MATRIX *VC_GEE_create_matrix(),
-     *VC_GEE_matcopy(),
-     *VC_GEE_extract_rows(),
-     *VC_GEE_matadd(),
-     *VC_GEE_matsub(),
-     *VC_GEE_matmult(),
-     *VC_GEE_transp(),
-     *VC_GEE_col_1s(),
-     *VC_GEE_matabs(),
-     *VC_GEE_matexp(),
-     *VC_GEE_px1_times_pxq(),
-     *VC_GEE_pxq_divby_px1(),
-     *VC_GEE_scalar_times_matrix(),
-     *VC_GEE_ident(),
-     *VC_GEE_form_diag(),
-     *VC_GEE_extract_cols(),
-     *VC_GEE_diag_as_vec(),
-     *VC_GEE_matsqrt(),
-     *VC_GEE_mat1over()
+static MATRIX *VC_GEE_create_matrix(int,int,int);
+static MATRIX *VC_GEE_matcopy(MATRIX *);
+static MATRIX *VC_GEE_extract_rows(MATRIX *, int, int);
+static MATRIX *VC_GEE_matadd(MATRIX *, MATRIX *);
+static MATRIX *VC_GEE_matsub(MATRIX *, MATRIX *);
+static MATRIX *VC_GEE_matmult(MATRIX *, MATRIX *);
+static MATRIX *VC_GEE_transp(MATRIX *);
+static MATRIX *VC_GEE_col_1s(int);
+static MATRIX *VC_GEE_matabs(MATRIX *);
+static MATRIX *VC_GEE_matexp(MATRIX *);
+static MATRIX *VC_GEE_px1_times_pxq(MATRIX *, MATRIX *);
+static MATRIX *VC_GEE_pxq_divby_px1(MATRIX *, MATRIX *);
+static MATRIX *VC_GEE_scalar_times_matrix(double, MATRIX *);
+static MATRIX *VC_GEE_ident(int);
+static MATRIX *VC_GEE_form_diag(MATRIX *);
+static MATRIX *VC_GEE_extract_cols(MATRIX *,int,  int);
+static MATRIX *VC_GEE_diag_as_vec(MATRIX *);
+static MATRIX *VC_GEE_matsqrt(MATRIX *);
+static MATRIX *VC_GEE_mat1over(MATRIX *);
+
+static double VC_GEE_matmax(MATRIX *);
+static double VC_GEE_elsum(MATRIX *);
+static void VC_GEE_plug(MATRIX *,MATRIX *, int, int),
+     VC_GEE_destroy_matrix(MATRIX *)
      ;
-static double VC_GEE_matmax(),
-     VC_GEE_elsum()
-     ;
-static void VC_GEE_plug(),
-     VC_GEE_destroy_matrix()
-     ;
-static int VC_GEE_split(),
-     VC_GEE_nchanges()
+static int VC_GEE_split(MATRIX *,MATRIX *,MATRIX *[]),
+     VC_GEE_nchanges(MATRIX *)
      ;
 
 
 /* The following functions are written by Z. Chen */
 /* ---------------------------------------------- */
 
-static MATRIX *get_seq1(),
-     *get_rep_scalar(),
-     *get_rep(),
-     *get_kronecker(),
-     *get_sum1row(),
-     *get_sum2col(),
-     *VC_GEE_matexpit(),
-     *get_outer(),
-     *get_rbind(),
-     *get_cbind(),
-     *get_cholinv(),
-     *matrix_subtract(),
-     *matrix_multiply(),
-     *get_matrix_row()
+static MATRIX *get_seq1(int, int),
+     *get_rep_scalar(int, int),
+     *get_rep(MATRIX *, int),
+     *get_kronecker(MATRIX *, MATRIX *),
+     *get_sum1row(MATRIX *),
+     *get_sum2col(MATRIX *),
+     *VC_GEE_matexpit(MATRIX *),
+     *get_outer(MATRIX *, MATRIX *),
+     *get_rbind(MATRIX *, MATRIX *),
+     *get_cbind(MATRIX *, MATRIX *),
+     *get_cholinv(MATRIX *),
+     *matrix_subtract(MATRIX *,MATRIX *),
+     *matrix_multiply(MATRIX *, MATRIX *),
+     *get_matrix_row(MATRIX *, int)
      ;
 
-static int get_rowindex();
-static double get_max_reldif(),
-              get_1_colsum(),
-              get_1_rowsum();
-static void get_mu_i(),
-     get_lambda_i(),
-     get_dmu_i_dbetaT(),
-     get_dlambda_i_dbetaT(),
-     get_bivar_cumuls_i(),
-     get_bivar_marginals_i(),
-     matrix_copyto(),
-     row_replace(),
-     col_replace(),
-     rows_plug(),
-     cols_plug(),
-     matrix_addto(),
-     get_matsub(),
-     get_matadd(),
-     get_mattransp(),
-     get_matmult(),
-     cholinv(),
-     add_outer_colvec_to(),
-     scalar_times_matrix(),
-     matrix_elem_mult(),
-     matrix_row_mult(),
-     matrix_col_mult(),
-     get_estfun(),
-     get_dvd(),
-     fisherscoring(),
-     set_zero(),
-     get_dpXt_i_dvpT_l()
+static int get_rowindex(int, int, int, int, int, int);
+static double get_max_reldif(MATRIX *, MATRIX *),
+              get_1_colsum(MATRIX *, int),
+              get_1_rowsum(MATRIX *, int);
+static void get_mu_i(MATRIX *,MATRIX *,int,int),
+     get_lambda_i(MATRIX *,MATRIX *,MATRIX *),
+     get_dmu_i_dbetaT(MATRIX *,MATRIX *,int,int),
+     get_dlambda_i_dbetaT(MATRIX *,MATRIX *,MATRIX *),
+     get_bivar_cumuls_i(MATRIX *,
+                        MATRIX *,
+                        MATRIX *,
+                        MATRIX *,
+                        MATRIX *,
+                        MATRIX *,
+                        MATRIX *,
+                        int ,
+                        int ,
+                        int ,
+                        int ),
+     get_bivar_marginals_i(MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           MATRIX *,
+                           int ,
+                           int ,
+                           int ,
+                           int ),
+     matrix_copyto(MATRIX *,MATRIX *),
+     row_replace(MATRIX *, int, MATRIX *, int),
+     col_replace(MATRIX *, int, MATRIX *, int),
+     rows_plug(MATRIX *,int, int, MATRIX *, int),
+     cols_plug(MATRIX *,int, int, MATRIX *, int),
+     matrix_addto(MATRIX *, MATRIX *),
+     get_matsub(MATRIX *,
+                MATRIX *, MATRIX *),
+     get_matadd(MATRIX *,
+                MATRIX *, MATRIX *),
+     get_mattransp(MATRIX *, MATRIX *),
+     get_matmult(MATRIX *,
+                 MATRIX *, MATRIX *),
+     cholinv(MATRIX *, MATRIX *),
+     add_outer_colvec_to(MATRIX *, MATRIX *),
+     scalar_times_matrix(double,  MATRIX *),
+     matrix_elem_mult(MATRIX *,MATRIX *),
+     matrix_row_mult(MATRIX *,MATRIX *),
+     matrix_col_mult(MATRIX *,MATRIX *),
+     get_estfun(MATRIX *,
+                MATRIX *,
+                MATRIX *,
+                MATRIX *,
+                MATRIX *),
+     get_dvd(MATRIX *,MATRIX *,MATRIX *,MATRIX *),
+     fisherscoring(double,MATRIX *,MATRIX *,MATRIX *),
+     set_zero(MATRIX *),
+     get_dpXt_i_dvpT_l(MATRIX *,
+                       int ,
+                       MATRIX *,
+                       MATRIX *,
+                       MATRIX *,
+                       MATRIX *,
+                       MATRIX *,
+                       MATRIX *,
+                       MATRIX *,
+                       int ,
+                       int )
      ;
 
-static MATRIX *get_dYtil_i_dgT(),
-     *get_dZtil_i_dgT(),
-     *form_matrix();
+static MATRIX *get_dYtil_i_dgT(MATRIX *,
+                               MATRIX *,
+                               MATRIX *,
+                               MATRIX *,
+                               MATRIX *,
+                               int ,
+                               int ),
+     *get_dZtil_i_dgT(MATRIX *,
+                      MATRIX *,
+                      int ,
+                      int ),
+     *form_matrix(double *, int, int, int);
 
-void Cmgee2(),
-     Cgetmgee2_i(),
-     Cgetordgee2_i()
+void Cmgee2(double *,
+            double *,
+            double *,
+            double *,
+            double *,
+            double *,
+            double *,
+            double *,
+            int *,
+            int *,
+            int *,
+            int *,
+            int *,
+            int *,
+            double *,
+            double *,
+            double *,
+            double *,
+            int *,
+            int *,
+            double *),
+     Cgetmgee2_i(double *,
+                 double *,
+                 double *,
+                 double *,
+                 double *,
+                 double *,
+                 int *,
+                 int *,
+                 int *,
+                 int *,
+                 int *,
+                 double *,
+                 double *,
+                 double *,
+                 double *,
+                 double *),
+     Cgetordgee2_i(double *,
+                   double *,
+                   double *,
+                   double *,
+                   int *,
+                   int *,
+                   int *,
+                   int *,
+                   double *,
+                   double *,
+                   double *,
+                   double *,
+                   double *)
      ;
 
+void Cgetmgee2v_i(
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    int *,
+    int *,
+    int *,
+    int *,
+    int *,
+    int *,
+    int *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *,
+    double *
+);

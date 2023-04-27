@@ -37,6 +37,27 @@ heart: preprocessed Framingham Heart Study Teaching data
 \examples{
 {
     data(heart)
+    #descriptive plots:
+    if(0){
+      library(mgee2)
+      library(ggplot2)
+      # covariates
+      heart$chol = as.factor(heart$chol)
+      heart$CURSMOKE = as.factor(heart$CURSMOKE)
+      heart$exam3 = as.factor(heart$exam3)
+      levels(heart$exam3) = c("exam2","exam3")
+      ggplot(heart, aes(x=AGE, y=SYSBP)) +
+        geom_line(aes(group=RANDID), alpha=0.5) +
+        geom_smooth(se=FALSE, size=2) +
+        ylab("SBP")+
+        facet_grid(chol~CURSMOKE, labeller = label_both)
+     # trend
+     ggplot(heart, aes(x=AGE, y=SYSBP,
+                       colour = chol,linetype = CURSMOKE)) +
+                         geom_smooth(method="lm", se=FALSE) +
+                         ylab("SBP")+facet_wrap(~exam3)+
+                         scale_color_brewer(palette = "Dark2")
+    }
     #Example 1:
     heart$chol = as.factor(heart$chol)
     heart$exam3 = as.factor(heart$exam3)

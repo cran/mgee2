@@ -173,46 +173,46 @@ getpropmea <- function(pars, est.mat, var.mat=NULL)
 }
 
 
-sum.table <- function(pars, estMAT, varMAT=NULL)
-{
-   flag.var <- !is.null(varMAT)
-   bad.est.indx <- apply(is.na(estMAT)|(abs(estMAT)>5), 1, FUN="any")
-   bad.indx <- bad.est.indx
-   if(flag.var) {
-      bad.var.indx <- apply(is.na(varMAT)|(varMAT<=0)|(varMAT>10),
-         1, FUN="any")
-      bad.indx <- bad.est.indx|bad.var.indx
-      var.mat <- varMAT[!bad.indx,]
-   }
-   est.mat <- estMAT[!bad.indx,]
-
-   bias <- apply(est.mat, 2, mean) - pars
-   empvar <- apply(est.mat, 2, var)
-   rb <- bias/pars*100
-   if(flag.var) {
-      amv <- apply(var.mat, 2, mean)
-      bv <-  amv - empvar
-      rbv <- bv/empvar*100
-      nrep <- nrow(est.mat)
-      cp <- apply(abs((est.mat-outer(rep(1,nrep),pars)))<
-         sqrt(var.mat)*1.96, 2 , mean)
-   } else {
-      amv <- NULL
-      bv <-  NULL
-      rbv <- NULL
-      nrep <- nrow(est.mat)
-      cp <- NULL
-   }
-   prop <- data.frame(
-      RB=rb,
-      EV=empvar,
-      AMV=amv,
-      #RBV=rbv,
-      CP=cp
-   )
-   cat(paste(nrep, "good simulation replicates"), "\n")
-   return(prop)
-}
+# sum.table <- function(pars, estMAT, varMAT=NULL)
+# {
+#    flag.var <- !is.null(varMAT)
+#    bad.est.indx <- apply(is.na(estMAT)|(abs(estMAT)>5), 1, FUN="any")
+#    bad.indx <- bad.est.indx
+#    if(flag.var) {
+#       bad.var.indx <- apply(is.na(varMAT)|(varMAT<=0)|(varMAT>10),
+#          1, FUN="any")
+#       bad.indx <- bad.est.indx|bad.var.indx
+#       var.mat <- varMAT[!bad.indx,]
+#    }
+#    est.mat <- estMAT[!bad.indx,]
+# 
+#    bias <- apply(est.mat, 2, mean) - pars
+#    empvar <- apply(est.mat, 2, var)
+#    rb <- bias/pars*100
+#    if(flag.var) {
+#       amv <- apply(var.mat, 2, mean)
+#       bv <-  amv - empvar
+#       rbv <- bv/empvar*100
+#       nrep <- nrow(est.mat)
+#       cp <- apply(abs((est.mat-outer(rep(1,nrep),pars)))<
+#          sqrt(var.mat)*1.96, 2 , mean)
+#    } else {
+#       amv <- NULL
+#       bv <-  NULL
+#       rbv <- NULL
+#       nrep <- nrow(est.mat)
+#       cp <- NULL
+#    }
+#    prop <- data.frame(
+#       RB=rb,
+#       EV=empvar,
+#       AMV=amv,
+#       #RBV=rbv,
+#       CP=cp
+#    )
+#    cat(paste(nrep, "good simulation replicates"), "\n")
+#    return(prop)
+# }
 
 
 get.sumtab <- function(pars, res.out, digit=4)

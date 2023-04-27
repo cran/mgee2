@@ -474,12 +474,12 @@ get.obsdat <- function(n, Y.mcform, X.mcform, gamMat, varphiMat,
 {
     obsdat <- data.frame(truedat, S=NA, W=NA)
     ID <- truedat$ID
-    if (class(truedat$Y)=="numeric") {
+    if (is.numeric(truedat$Y)) {
         Y <- truedat$Y
     } else {
         Y <- as.numeric(levels(truedat$Y))[truedat$Y]
     }
-    if (class(truedat$X)=="numeric") {
+    if (is.numeric(truedat$X)) {
         X <- truedat$X
     } else {
         X <- as.numeric(levels(truedat$X))[truedat$X]

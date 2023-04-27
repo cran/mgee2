@@ -63,4 +63,6 @@ addressing misclassification effects
 }
 \references{
 Z. Chen, G. Y. Yi, and C. Wu. Marginal analysis of longitudinal ordinal data with misclassification inboth response and covariates. \emph{Biometrical Journal}, 56(1):69-85, Oct. 2014
+
+Xu, Yuliang, Shuo Shuo Liu, and Y. Yi Grace. 2021. “mgee2: An R Package for Marginal Analysis of Longitudinal Ordinal Data with Misclassified Responses and Covariates.” \emph{The R Journal} 13 (2): 419.
 }
