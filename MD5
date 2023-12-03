@@ -1,4 +1,4 @@
-e6de8fd570c01bed0f2d6705b813a134 *DESCRIPTION
+60f7083f8437d412131bd8f32aad3c74 *DESCRIPTION
 ef0f1ff2938acb06b89f77cc161e50f3 *NAMESPACE
 c27a5dc356ba050ef4e7fdba47364a80 *R/data_document.R
 06d2bb96f2a4d0fc39e170bc80d1d6dc *R/external_pkg.R
@@ -23,6 +23,6 @@ d7b1918022317b9062fd7d714bf017a8 *man/ordGEE2.Rd
 66de0e7d9bf42476348b3698322b7c54 *man/plot_model.Rd
 c592f62928ca67f03c124b3fdc62f53c *man/print.summary.mgee2.Rd
 5e5c6cf0aa7860da5f03d1261f1df0a3 *man/summary.mgee2.Rd
-a9aa5cb2d5bfd013eee9ff6595ce442b *src/mgee2.c
+4c8cacd7fec4a428bec90ae5052339ac *src/mgee2.c
 682e42c11e8b25b0c799e12d1bd9af99 *src/mgee2.h
 3ff2c8c8461f7ed1ec88dbd82870e74a *src/packagename_init.c

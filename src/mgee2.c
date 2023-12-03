@@ -1273,8 +1273,9 @@ static MATRIX *VC_GEE_create_matrix(int nrows, int ncols, int permanence){
 
     if (tmp == NULL)
     {
-	error("VC_GEE_create_matrix: malloc failed %d",
-	      sizeof(struct matrix));
+	// error("VC_GEE_create_matrix: malloc failed %llu",
+	//       sizeof(struct matrix));
+      error("VC_GEE_create_matrix: malloc failed");
     }
 
     tmp->nrows = nrows;
