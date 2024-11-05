@@ -1,6 +1,6 @@
 Package: mgee2
 Title: Marginal Analysis of Misclassified Longitudinal Ordinal Data
-Version: 0.5
+Version: 0.6
 Authors@R: c(
 	person("Yuliang", "Xu", email = "yuliangx@umich.edu", role = c("aut","cre")),
 	person("Zhijian", "Chen", email = " ", role = "aut"),
@@ -20,11 +20,11 @@ LazyData: true
 RoxygenNote: 7.1.2
 Suggests: rmarkdown, knitr
 NeedsCompilation: yes
-Packaged: 2023-12-03 03:48:59 UTC; yuliangxu
+Packaged: 2024-11-05 06:30:18 UTC; yuliangxu
 Author: Yuliang Xu [aut, cre],
   Zhijian Chen [aut],
   Shuo Shuo Liu [aut],
   Grace Yi [aut]
 Maintainer: Yuliang Xu <yuliangx@umich.edu>
 Repository: CRAN
-Date/Publication: 2023-12-03 04:00:02 UTC
+Date/Publication: 2024-11-05 06:50:02 UTC

@@ -10,6 +10,7 @@
 
 
 
+
 void Cgetmgee2v_i(
             double *S_DM_i,
             double *S_Ytilde_i,
@@ -2400,7 +2401,10 @@ static MATRIX *get_cholinv(MATRIX *X)
     int nrows, ncols;
     double *y;
     int i, j;
-    double *det = Calloc(2, double), *z = Calloc(X->nrows, double);
+    // double *det = Calloc(2, double), *z = Calloc(X->nrows, double);
+    double *det = (double *)R_Calloc(2, double);           // Allocate memory for 'det' using R's Calloc
+    double *z = (double *)R_Calloc(X->nrows, double);   
+    
     /* double *det = (double *) calloc(2,  sizeof(double)),
         *z = (double *) calloc(X->nrows,  sizeof(double));  */
     double rcond;
@@ -2431,7 +2435,7 @@ static MATRIX *get_cholinv(MATRIX *X)
         }
     }
 
-    Free(z); Free(det);
+    R_Free(z); R_Free(det);
     /* free(z); free(det); */
     free_if_ephemeral(X);
     VC_GEE_destroy_matrix(tempmat);
@@ -2864,7 +2868,10 @@ static void cholinv(MATRIX *X, MATRIX *Xinv)
     int nrows, ncols;
     double *y;
     int i, j;
-    double *det = Calloc(2, double), *z = Calloc(X->nrows, double);
+    // double *det = Calloc(2, double), *z = Calloc(X->nrows, double);
+    double *det = (double *)R_Calloc(2, double);           // Allocate memory for 'det' using R's Calloc
+    double *z = (double *)R_Calloc(X->nrows, double);   
+    
     /* double *det = (double *) calloc(2,  sizeof(double)),
         *z = (double *) calloc(X->nrows,  sizeof(double));  */
     double rcond;
@@ -2872,7 +2879,7 @@ static void cholinv(MATRIX *X, MATRIX *Xinv)
 
     if ((X->nrows != Xinv->nrows) || (X->ncols != Xinv->ncols))
     {
-        Free(z); Free(det);
+      R_Free(z); R_Free(det);
         error("cholinv: Dimensions do not match");
     }
 
@@ -2904,7 +2911,7 @@ static void cholinv(MATRIX *X, MATRIX *Xinv)
         }
     }
 
-    Free(z); Free(det);
+    R_Free(z); R_Free(det);
     /* free(z); free(det); */
     free_if_ephemeral(X);
     VC_GEE_destroy_matrix(tempmat);
